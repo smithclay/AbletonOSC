@@ -97,6 +97,7 @@ class Manager(ControlSurface):
                 abletonosc.ClipSlotHandler(self),
                 abletonosc.TrackHandler(self),
                 abletonosc.DeviceHandler(self),
+                abletonosc.ArrangementClipHandler(self),
                 abletonosc.ViewHandler(self),
                 abletonosc.SceneHandler(self),
                 abletonosc.MidiMapHandler(self),
@@ -120,22 +121,35 @@ class Manager(ControlSurface):
         self.schedule_message(1, self.tick)
 
     def reload_imports(self):
+        modules_to_reload = [
+            abletonosc.handler,
+            abletonosc.osc_server,
+            abletonosc.application,
+            abletonosc.clip,
+            abletonosc.clip_slot,
+            abletonosc.device,
+            abletonosc.scene,
+            abletonosc.song,
+            abletonosc.track,
+            abletonosc.view,
+            abletonosc.browser,
+        ]
+        # New modules may not be in sys.modules yet on first reload after adding
+        for attr in ['arrangement_clip']:
+            mod = getattr(abletonosc, attr, None)
+            if mod is not None:
+                modules_to_reload.append(mod)
+
+        for mod in modules_to_reload:
+            try:
+                importlib.reload(mod)
+            except Exception as e:
+                logger.warning("Failed to reload %s: %s" % (mod.__name__, e))
+
         try:
-            importlib.reload(abletonosc.application)
-            importlib.reload(abletonosc.clip)
-            importlib.reload(abletonosc.clip_slot)
-            importlib.reload(abletonosc.device)
-            importlib.reload(abletonosc.handler)
-            importlib.reload(abletonosc.osc_server)
-            importlib.reload(abletonosc.scene)
-            importlib.reload(abletonosc.song)
-            importlib.reload(abletonosc.track)
-            importlib.reload(abletonosc.view)
-            importlib.reload(abletonosc.browser)
             importlib.reload(abletonosc)
         except Exception as e:
-            exc = traceback.format_exc()
-            logging.warning(exc)
+            logger.warning("Failed to reload abletonosc: %s" % e)
 
         self.clear_api()
         self.init_api()

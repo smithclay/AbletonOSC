@@ -13,5 +13,6 @@ from .device import DeviceHandler
 from .scene import SceneHandler
 from .view import ViewHandler
 from .midimap import MidiMapHandler
+from .arrangement_clip import ArrangementClipHandler
 from .browser import BrowserHandler
 from .constants import OSC_LISTEN_PORT, OSC_RESPONSE_PORT

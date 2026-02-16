@@ -140,3 +140,52 @@ class DeviceHandler(AbletonOSCHandler):
         self.osc_server.add_handler("/live/device/get/parameter/name", create_device_callback(device_get_parameter_name))
         self.osc_server.add_handler("/live/device/start_listen/parameter/value", create_device_callback(device_get_parameter_value_listener, include_ids = True))
         self.osc_server.add_handler("/live/device/stop_listen/parameter/value", create_device_callback(device_get_parameter_remove_value_listener, include_ids = True))
+
+        #--------------------------------------------------------------------------------
+        # Device: Rack/Chain operations
+        #--------------------------------------------------------------------------------
+        def device_get_num_chains(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            return (len(device.chains),)
+
+        def device_get_chains_name(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            return tuple(chain.name for chain in device.chains)
+
+        def device_get_chains_mute(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            return tuple(chain.mute for chain in device.chains)
+
+        def device_get_chains_volume(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            return tuple(chain.mixer_device.volume.value for chain in device.chains)
+
+        def device_set_chain_name(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            chain_index = int(params[0])
+            device.chains[chain_index].name = params[1]
+
+        def device_set_chain_volume(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            chain_index = int(params[0])
+            device.chains[chain_index].mixer_device.volume.value = params[1]
+
+        def device_set_chain_mute(device, params: Tuple[Any] = ()):
+            if not device.can_have_chains:
+                raise RuntimeError("Device '%s' cannot have chains" % device.name)
+            chain_index = int(params[0])
+            device.chains[chain_index].mute = params[1]
+
+        self.osc_server.add_handler("/live/device/get/num_chains", create_device_callback(device_get_num_chains))
+        self.osc_server.add_handler("/live/device/get/chains/name", create_device_callback(device_get_chains_name))
+        self.osc_server.add_handler("/live/device/get/chains/mute", create_device_callback(device_get_chains_mute))
+        self.osc_server.add_handler("/live/device/get/chains/volume", create_device_callback(device_get_chains_volume))
+        self.osc_server.add_handler("/live/device/set/chain/name", create_device_callback(device_set_chain_name))
+        self.osc_server.add_handler("/live/device/set/chain/volume", create_device_callback(device_set_chain_volume))
+        self.osc_server.add_handler("/live/device/set/chain/mute", create_device_callback(device_set_chain_mute))
